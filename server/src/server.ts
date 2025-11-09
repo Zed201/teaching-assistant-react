@@ -12,7 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 // In-memory student storage (in production, use a database)
-const studentSet = new StudentSet();
+const studentSet = new StudentSet('./data/students.json');
 
 // Helper function to clean CPF
 const cleanCPF = (cpf: string): string => {
