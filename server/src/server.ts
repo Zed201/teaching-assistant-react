@@ -405,6 +405,7 @@ app.get('/api/classes/:classId/enrollments', (req: Request, res: Response) => {
 app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
   try {
     const { classId, studentCPF } = req.params;
+    console.log(classId);
     const { goal, grade } = req.body;
     
     if (!goal) {
@@ -443,7 +444,8 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 // PUT /api/classes/:classId/enrollments, used for import grades
 app.post('/api/classes/evaluationImport/:classId', upload.single('file'), async (req: express.Request, res: express.Response) => {
   // arquivo, seja de .csv ou .xlsl
-  // const classId = req.params.classId;
+  const classId = req.params.classId; // basicamente o nome da turma
+  const classObj = classes.findClassById(classId);
   
   // const fileP = req.file?.path ?? ""; 
   // if (!fileP) {
@@ -477,7 +479,31 @@ app.post('/api/classes/evaluationImport/:classId', upload.single('file'), async 
   //   return res.status(500).json({ error: err.message });
   // }
   const fileP = req.file?.path ?? "";
-  console.log(fileP);
+  // Apenas teste:
+  const getCSVColumnsFromFile = (filePath: string) => {
+    try {
+      const fileContent = fs.readFileSync(filePath, 'utf8');
+      const firstLine = fileContent.split('\n')[0].replace(/\r$/, '');
+      
+      // Divide por vírgulas, mas ignora vírgulas dentro de aspas
+      const columns = firstLine.split(',').map(col => {
+        // Remove aspas se existirem
+        return col.replace(/^"|"$/g, '');
+      });
+      
+      return columns;
+    } catch (error) {
+      console.error('Erro ao ler arquivo:', error);
+      return [];
+    }
+  };
+  // colunas do arquivo
+  const file_cols = getCSVColumnsFromFile(fileP); 
+  // colunas que deve ter, basicamente o grade do class, se tiver colunas difrentes por classe
+  const field_cols = ["d", "e", "f"];
+  // ignorar as linhas
+  // apenas para teste
+  res.send({ status: 200, session_string: fileP, file_columns: file_cols, mapping_colums: field_cols });
 })
 
 app.listen(PORT, () => {
