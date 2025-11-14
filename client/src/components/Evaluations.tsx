@@ -156,6 +156,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                   {evaluationGoals.map(goal => (
                     <th key={goal} className="goal-header">{goal}</th>
                   ))}
+                  <th className="average-header">Média</th>
                 </tr>
               </thead>
               <tbody>
@@ -189,6 +190,7 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                           </td>
                         );
                       })}
+                      <td className="average-cell">{enrollment.getMedia()}</td>
                     </tr>
                   );
                 })}

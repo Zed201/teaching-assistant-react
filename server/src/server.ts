@@ -440,6 +440,32 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
   }
 });
 
+app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
+  try {
+    const { classId, studentCPF } = req.params;
+
+    const classObj = classes.findClassById(classId);
+    if (!classObj) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    const cleanedCPF = cleanCPF(studentCPF);
+    const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
+    if (!enrollment) {
+      return res.status(404).json({ error: 'Student not enrolled in this class' });
+    }
+
+    const media = enrollment.getMedia();
+
+    res.json({
+      student: enrollment.getStudent().toJSON(),
+      average: media
+    });
+  } catch (error) {
+    res.status(400).json({ error: (error as Error).message });
+  }
+});
+
 // PUT /api/classes/:classId/enrollments, used for import grades
 app.post('/api/classes/evaluationImport/:classId', upload.single('file'), async (req: express.Request, res: express.Response) => {
   // arquivo, seja de .csv ou .xlsl

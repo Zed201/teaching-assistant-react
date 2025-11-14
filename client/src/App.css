@@ -802,7 +802,7 @@ tbody tr:last-child td {
 /* Goal columns - uniform width */
 .evaluations-table th:not(:first-child),
 .evaluations-table td:not(:first-child) {
-  width: calc((100% - 200px) / 6); /* Distribute remaining width equally among 6 goal columns */
+  width: calc((100% - 200px) / 7); /* Distribute remaining width equally among 6 goal columns + média column */
   min-width: 120px; /* Minimum width to ensure readability */
 }
 
@@ -880,6 +880,28 @@ tbody tr:last-child td {
 .grade-select.no-grade {
   color: #9ca3af;
   background-color: #f9fafb;
+}
+
+.average-header {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  color: white;
+  padding: 16px 8px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border: 1px solid #047857;
+  width: calc((100% - 200px) / 6); /* Equal width for all 6 goal columns */
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+  vertical-align: middle;
+  line-height: 1.2;
+}
+
+.average-cell {
+  text-align: center;
+  padding: 0.5rem;
+  font-weight: 500;
+  color: #374151;
 }
 
 /* Evaluation table styles */
