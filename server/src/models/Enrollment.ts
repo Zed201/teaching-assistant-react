@@ -4,10 +4,18 @@ import { Evaluation } from './Evaluation';
 export class Enrollment {
   private student: Student;
   private evaluations: Evaluation[];
+  // Média do estudante antes da prova final
+  private mediaPreFinal: number;
+  // Média do estudante depois da final
+  private mediaPosFinal: number;
+  private reprovadoPorFalta: Boolean;
 
-  constructor(student: Student, evaluations: Evaluation[] = []) {
+  constructor(student: Student, evaluations: Evaluation[] = [], mediaPreFinal: number = 0, mediaPosFinal: number = 0, reprovadoPorFalta: Boolean = false) {
     this.student = student;
     this.evaluations = evaluations;
+    this.mediaPreFinal = mediaPreFinal;
+    this.mediaPosFinal = mediaPosFinal;
+    this.reprovadoPorFalta = reprovadoPorFalta;
   }
 
   // Get student
@@ -18,6 +26,36 @@ export class Enrollment {
   // Get evaluations
   getEvaluations(): Evaluation[] {
     return [...this.evaluations]; // Return copy to prevent external modification
+  }
+
+  // Get media do estudante antes da prova final
+  getMediaPreFinal(): number{
+    return this.mediaPreFinal;
+  }
+
+  // Set media do estudante antes da prova final
+  setMediaPreFinal(mediaPreFinal: number){
+    this.mediaPreFinal = mediaPreFinal;
+  }
+
+  // Get média do estudante depois da final
+  getMediaPosFinal(): number{
+    return this.mediaPosFinal;
+  }
+
+  // Set média do estudante depois da final
+  setMediaPosFinal(mediaPosFinal: number){
+    this.mediaPosFinal = mediaPosFinal;
+  }
+
+  // Get reprovado por falta 
+  getReprovadoPorFalta(): Boolean {
+    return this.reprovadoPorFalta;
+  }
+  
+  // Set reprovado por falta
+  setReprovadoPorFalta(reprovadoPorFalta: Boolean){
+    this.reprovadoPorFalta = reprovadoPorFalta;
   }
 
   // Add or update an evaluation

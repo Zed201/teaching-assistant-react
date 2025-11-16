@@ -8,10 +8,11 @@ import { Class } from './models/Class';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import { CSVReader, SpreadsheetReader, XLSLReader } from './services/SpreeadsheetReader';
-
+// usado para ler arquivos em POST
 const multer = require('multer');
-const upload = multer({ dest: 'temp_data/' });
+
+// pasta usada para salvar os upload's feitos
+const upload_dir = multer({dest: 'tmp_data/'})
 
 const app = express();
 const PORT = 3005;
@@ -440,43 +441,13 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
   }
 });
 
-// PUT /api/classes/:classId/enrollments, used for import grades
-app.post('/api/classes/evaluationImport/:classId', upload.single('file'), async (req: express.Request, res: express.Response) => {
-  // arquivo, seja de .csv ou .xlsl
-  const classId = req.params.classId;
-  
-  const fileP = req.file?.path ?? ""; 
-  if (!fileP) {
-    return res.status(400).json({ error: "Arquivo não enviado" });
-  }
-  
-  // pega as trocas de colunas do front de cara
-  const newCols_Name = req.body.mapping ? JSON.parse(req.body.mapping) : null;
-  
-  // TODO: Pegar as metas para a classe, esperando alguem implementar a modificacao de EVALUATION_GOALS por turma
-  const default_fields: string[] = [...EVALUATION_GOALS]; ;
-  
-  const ext = path.extname(fileP).toLowerCase();
-  var reader: SpreadsheetReader<any>;
-  
-  switch (ext) {
-    case ".csv":
-      reader = new CSVReader(fileP, newCols_Name, default_fields);
-      break;
-    case ".xlsx":
-      reader = new XLSLReader(fileP, newCols_Name, default_fields)
-      break;
-    default:
-      return res.status(415).json({ error: "Arquivo não suportado" });
-  }
-  try {
-    const lines = await reader.process(); 
-    // TODO: cria alunos e faz update dos grades aqui
-    return res.json(lines);
-  } catch (err: any) {
-    return res.status(500).json({ error: err.message });
-  }
-})
+// POST api/classes/gradeImport/:classId, usado na feature de importacao de grades
+// Vai ser usado em 2 fluxos(poderia ter divido em 2 endpoints mas preferi deixar em apenas 1)
+// [Front] Upload → [Back] lê só o cabeçalho e retorna colunas da planilha e os goals da 'classId'
+// [Front] Mapeia colunas da planilha para os goals → [Back] faz parse completo (stream)
+app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (req: express.Request, res: express.Response) => {
+  res.status(501).json({ error: "Endpoint ainda não implementado." });
+});
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
