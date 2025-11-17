@@ -125,12 +125,16 @@ export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = (
       );
     setMapping(cleanedMapping);
     try {
-      const f = new FormData();
-      f.append('session', session);
-      f.append('mapping', JSON.stringify(cleanedMapping));
+      const f = {
+        session,
+        mapping: cleanedMapping,
+      };
 
       const response = await fetch(API_BASE_URL + '/api/classes/gradeImport/' + classID, {
         method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+          },
         body: JSON.stringify(f)
       });
 

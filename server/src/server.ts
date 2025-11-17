@@ -540,43 +540,44 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
   // mapping_colums e o nome das colunas que espera receber, para ser mapeado
   // o outro tipo de resposta e apenas um res.send({status: 200}), que ja recebe os dados
   const fileP = req.file?.path ?? ""; 
-  if (!fileP) {
-    res.status(501).json({ error: "Endpoint ainda não implementado." });
-    return;
-  }
-  if (!fileP) {
-    return res.status(400).json({ error: "Arquivo não enviado" });
-  }
+  if (fileP) {
   
-  const classId = req.params.classId;
-  const classObj = classes.findClassById(classId);
-  if (!classObj) {
-    return res.status(404).json({ error: "Class not Found" });
-    return;
-  }
+    const classId = req.params.classId;
+    const classObj = classes.findClassById(classId);
+    if (!classObj) {
+      return res.status(404).json({ error: "Class not Found" });
+      return;
+    }
   
-  const enroll = classObj.getEnrollments();
-  if (!enroll) {
-    res.status(404).json({ error: "Enrolments not found" });
-    return;
-  }
+    const enroll = classObj.getEnrollments();
+    if (!enroll) {
+      res.status(404).json({ error: "Enrolments not found" });
+      return;
+    }
 
   
   
-  // pegar os goals, de forma condizente com os dados e nao algo hardcoded
-  const goals_field = Array.from(
+    // pegar os goals, de forma condizente com os dados e nao algo hardcoded
+    const goals_field = Array.from(
       new Set(
-        enroll.flatMap(enrollment => 
+        enroll.flatMap(enrollment =>
           enrollment.getEvaluations().map(eval_ => eval_.getGoal())
         )
       )
     );
-  // TODO: verificar o tipo de arquivo
-  var sheet = new CSVReader(fileP);
-  const file_colums = await sheet.getColumns();
-  res.status(200).json({session_string: fileP, file_columns: file_colums, mapping_colums: goals_field})
-  return;
-  
+    // TODO: verificar o tipo de arquivo
+    var sheet = new CSVReader(fileP);
+    const file_colums = await sheet.getColumns();
+    res.status(200).json({ session_string: fileP, file_columns: file_colums, mapping_colums: goals_field })
+    return;
+  } else {
+    console.log(req.body)
+    // dando erro ao pegar o body, ver isso depois
+    // const session = req.body.session; // string
+    // const mapping = req.body.mapping ? JSON.parse(req.body.mapping) : null; // converte JSON
+    // console.log(session, mapping);
+    res.status(200).json({})
+  }
 
 });
 
