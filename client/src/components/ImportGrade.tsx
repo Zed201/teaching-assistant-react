@@ -126,7 +126,7 @@ export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = (
     setMapping(cleanedMapping);
     try {
       const f = {
-        session,
+        session_string: session,
         mapping: cleanedMapping,
       };
       console.log(f);

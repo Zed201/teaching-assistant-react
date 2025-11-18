@@ -53,7 +53,7 @@ const saveDataToFile = (): void => {
         }))
       }))
     };
-    
+
     ensureDataDirectory();
     fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
@@ -67,7 +67,7 @@ const loadDataFromFile = (): void => {
     if (fs.existsSync(dataFile)) {
       const fileContent = fs.readFileSync(dataFile, 'utf-8');
       const data = JSON.parse(fileContent);
-      
+
       // Load students
       if (data.students && Array.isArray(data.students)) {
         data.students.forEach((studentData: any) => {
@@ -77,7 +77,7 @@ const loadDataFromFile = (): void => {
             studentData.cpf,
             studentData.email
           );
-          
+
           try {
             studentSet.addStudent(student);
           } catch (error) {
@@ -99,7 +99,7 @@ const loadDataFromFile = (): void => {
                 const student = studentSet.findStudentByCPF(enrollmentData.studentCPF);
                 if (student) {
                   const enrollment = classObj.addEnrollment(student);
-                  
+
                   // Load evaluations for this enrollment
                   if (enrollmentData.evaluations && Array.isArray(enrollmentData.evaluations)) {
                     enrollmentData.evaluations.forEach((evalData: any) => {
@@ -154,7 +154,7 @@ app.get('/api/students', (req: Request, res: Response) => {
 app.post('/api/students', (req: Request, res: Response) => {
   try {
     const { name, cpf, email } = req.body;
-    
+
     if (!name || !cpf || !email) {
       return res.status(400).json({ error: 'Name, CPF, and email are required' });
     }
@@ -174,11 +174,11 @@ app.put('/api/students/:cpf', (req: Request, res: Response) => {
   try {
     const { cpf } = req.params;
     const { name, email } = req.body;
-    
+
     if (!name || !email) {
       return res.status(400).json({ error: 'Name and email are required for update' });
     }
-    
+
     // Create a Student object for update - evaluations handled through enrollments
     const updatedStudent = new Student(name, cpf, email);
     const result = studentSet.updateStudent(updatedStudent);
@@ -195,11 +195,11 @@ app.delete('/api/students/:cpf', (req: Request, res: Response) => {
     const { cpf } = req.params;
     const cleanedCPF = cleanCPF(cpf);
     const success = studentSet.removeStudent(cleanedCPF);
-    
+
     if (!success) {
       return res.status(404).json({ error: 'Student not found' });
     }
-    
+
     triggerSave(); // Save to file after deleting
     res.status(204).send();
   } catch (error) {
@@ -214,18 +214,18 @@ app.put('/api/students/:cpf/evaluation', (req: Request, res: Response) => {
   try {
     const { cpf } = req.params;
     const { goal, grade } = req.body;
-    
+
     if (!goal) {
       return res.status(400).json({ error: 'Goal is required' });
     }
-    
+
     const cleanedCPF = cleanCPF(cpf);
     const student = studentSet.findStudentByCPF(cleanedCPF);
-    
+
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }
-    
+
     if (grade === '' || grade === null || grade === undefined) {
       // Remove evaluation
       student.removeEvaluation(goal);
@@ -236,7 +236,7 @@ app.put('/api/students/:cpf/evaluation', (req: Request, res: Response) => {
       }
       student.addOrUpdateEvaluation(goal, grade);
     }
-    
+
     triggerSave(); // Save to file after evaluation update
     res.json(student.toJSON());
   } catch (error) {
@@ -251,11 +251,11 @@ app.get('/api/students/:cpf', (req: Request, res: Response) => {
     const { cpf } = req.params;
     const cleanedCPF = cleanCPF(cpf);
     const student = studentSet.findStudentByCPF(cleanedCPF);
-    
+
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }
-    
+
     res.json(student.toJSON());
   } catch (error) {
     res.status(400).json({ error: (error as Error).message });
@@ -276,7 +276,7 @@ app.get('/api/classes', (req: Request, res: Response) => {
 app.post('/api/classes', (req: Request, res: Response) => {
   try {
     const { topic, semester, year } = req.body;
-    
+
     if (!topic || !semester || !year) {
       return res.status(400).json({ error: 'Topic, semester, and year are required' });
     }
@@ -295,11 +295,11 @@ app.put('/api/classes/:id', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const { topic, semester, year } = req.body;
-    
+
     if (!topic || !semester || !year) {
       return res.status(400).json({ error: 'Topic, semester, and year are required' });
     }
-    
+
     const existingClass = classes.findClassById(id);
     if (!existingClass) {
       return res.status(404).json({ error: 'Class not found' });
@@ -309,7 +309,7 @@ app.put('/api/classes/:id', (req: Request, res: Response) => {
     existingClass.setTopic(topic);
     existingClass.setSemester(semester);
     existingClass.setYear(year);
-    
+
     triggerSave(); // Save to file after updating class
     res.json(existingClass.toJSON());
   } catch (error) {
@@ -322,11 +322,11 @@ app.delete('/api/classes/:id', (req: Request, res: Response) => {
   try {
     const { id } = req.params;
     const success = classes.removeClass(id);
-    
+
     if (!success) {
       return res.status(404).json({ error: 'Class not found' });
     }
-    
+
     triggerSave(); // Save to file after deleting class
     res.status(204).send();
   } catch (error) {
@@ -339,7 +339,7 @@ app.post('/api/classes/:classId/enroll', (req: Request, res: Response) => {
   try {
     const { classId } = req.params;
     const { studentCPF } = req.body;
-    
+
     if (!studentCPF) {
       return res.status(400).json({ error: 'Student CPF is required' });
     }
@@ -366,7 +366,7 @@ app.post('/api/classes/:classId/enroll', (req: Request, res: Response) => {
 app.delete('/api/classes/:classId/enroll/:studentCPF', (req: Request, res: Response) => {
   try {
     const { classId, studentCPF } = req.params;
-    
+
     const classObj = classes.findClassById(classId);
     if (!classObj) {
       return res.status(404).json({ error: 'Class not found' });
@@ -374,11 +374,11 @@ app.delete('/api/classes/:classId/enroll/:studentCPF', (req: Request, res: Respo
 
     const cleanedCPF = cleanCPF(studentCPF);
     const success = classObj.removeEnrollment(cleanedCPF);
-    
+
     if (!success) {
       return res.status(404).json({ error: 'Student not enrolled in this class' });
     }
-    
+
     triggerSave(); // Save to file after unenrolling student
     res.status(204).send();
   } catch (error) {
@@ -390,7 +390,7 @@ app.delete('/api/classes/:classId/enroll/:studentCPF', (req: Request, res: Respo
 app.get('/api/classes/:classId/enrollments', (req: Request, res: Response) => {
   try {
     const { classId } = req.params;
-    
+
     const classObj = classes.findClassById(classId);
     if (!classObj) {
       return res.status(404).json({ error: 'Class not found' });
@@ -409,7 +409,7 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
     const { classId, studentCPF } = req.params;
     console.log(classId);
     const { goal, grade } = req.body;
-    
+
     if (!goal) {
       return res.status(400).json({ error: 'Goal is required' });
     }
@@ -476,7 +476,7 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
   // file_columns e o nome das colunas do arquivo
   // mapping_colums e o nome das colunas que espera receber, para ser mapeado
   // o outro tipo de resposta e apenas um res.send({status: 200}), que ja recebe os dados
-  const fileP = req.file?.path ?? ""; 
+  const fileP = req.file?.path ?? "";
   if (fileP) {
     // TODO: verificar o tipo de arquivo
     var sheet = new CSVReader(fileP);
@@ -486,7 +486,7 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
   } else {
     // recebe um json com o session(nome do arquivo) um map[string -> string] com o mapeamento
     // mapping vai ser 'coluna da planilha' -> oque dos goals
-    const { session, mapping } = req.body;
+    const { session_string, mapping } = req.body;
     // inverte pois fica mais facil na hora do codigo
     const invertedMapping = Object.fromEntries(
       Object.entries(mapping).map(([key, value]) => [value, key])
@@ -494,7 +494,7 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
 
     // nome do arquivo como um identificador de sessao
     // TODO: verificar tipo de arquivo
-    var sheet = new CSVReader(session);
+    var sheet = new CSVReader(session_string);
     const data = await sheet.process(); // a json from sheet
     // linhas com as colunas certas pos mapeamento
     var parsed_lines: any[] = []
@@ -505,32 +505,30 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
       )
       parsed_lines.push(filtered);
     });
-    var idx = 0;
-    
+
     for (const l of parsed_lines) {
-      console.log(l);
-      idx += 1;
       const cleanedcpf = cleanCPF(l['cpf']);
-      console.log(l['cpf']);
-      //   const enrollment = classObj.findEnrollmentByStudentCPF(cleanedcpf);
-      //   if (!enrollment) {
-      //     return res.status(404).json({ error: `Student, ${cleanedcpf}, not enrolled in this class` });
-      //   }
-    
-      //   for (const [goal, grade] of Object.entries(l).filter(([k]) => k !== 'cpf')) {
-      //     if (grade === '') {
-      //       enrollment.removeEvaluation(goal);
-      //     } else if (!['MANA', 'MPA', 'MA'].includes(grade)) {
-      //       return res.status(400).json({ error: `Invalid grade, for ${goal} on CPF=${cleanedcpf}. Must be MANA, MPA, or MA` });
-      //     } else {
-      //       enrollment.addOrUpdateEvaluation(goal, grade);
-      //     }
-      //   }
-      // }
-    }
-    // triggerSave();
-  }
+        const enrollment = classObj.findEnrollmentByStudentCPF(cleanedcpf);
+        if (!enrollment) {
+          return res.status(404).json({ error: `Student, ${cleanedcpf}, not enrolled in this class` });
+        }
+          
+        // atualiza o grade exatamente do jeito que esta na planilha, onde esta vazio
+        // TODO: Saber se quando esta vazio ele nao deve atualizar 
+        for (const [goal, grade] of Object.entries(l).filter(([k]) => k !== 'cpf')) {
+          if (grade === '') {
+            enrollment.removeEvaluation(goal);
+          } else if (!['MANA', 'MPA', 'MA'].includes(grade)) {
+            return res.status(400).json({ error: `Invalid grade, for ${goal} on CPF=${cleanedcpf}. Must be MANA, MPA, or MA, is '${grade}'` });
+          } else {
+            enrollment.addOrUpdateEvaluation(goal, grade);
+          }
+        }
+      }
+    triggerSave();
     res.status(200).json(parsed_lines);
+  }
+  
 });
 
 app.listen(PORT, () => {
