@@ -52,12 +52,12 @@
               "grade": "MA"
             },
             {
-              "goal": "Tests",
-              "grade": "MPA"
-            },
-            {
               "goal": "Refactoring",
               "grade": "MA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MPA"
             }
           ]
         },
@@ -94,28 +94,8 @@
           "studentCPF": "22222222222",
           "evaluations": [
             {
-              "goal": "Configuration Management",
-              "grade": "MANA"
-            },
-            {
               "goal": "Requirements",
               "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MANA"
             }
           ]
         }

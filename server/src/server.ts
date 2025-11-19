@@ -62,7 +62,7 @@ const saveDataToFile = (): void => {
 };
 
 // Load data from file
-const loadDataFromFile = (): void => {
+export const loadDataFromFile = (): void => {
   try {
     if (fs.existsSync(dataFile)) {
       const fileContent = fs.readFileSync(dataFile, 'utf-8');
@@ -476,7 +476,8 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
   // file_columns e o nome das colunas do arquivo
   // mapping_colums e o nome das colunas que espera receber, para ser mapeado
   // o outro tipo de resposta e apenas um res.send({status: 200}), que ja recebe os dados
-  const fileP = req.file?.path ?? "";
+  // const fileP = req.file?.path ?? "";
+  const fileP = (req as any).file?.path ?? "";
   if (fileP) {
     // TODO: verificar o tipo de arquivo
     var sheet = new CSVReader(fileP);
@@ -512,9 +513,9 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
         if (!enrollment) {
           return res.status(404).json({ error: `Student, ${cleanedcpf}, not enrolled in this class` });
         }
-          
+
         // atualiza o grade exatamente do jeito que esta na planilha, onde esta vazio
-        // TODO: Saber se quando esta vazio ele nao deve atualizar 
+        // TODO: Saber se quando esta vazio ele nao deve atualizar
         for (const [goal, grade] of Object.entries(l).filter(([k]) => k !== 'cpf')) {
           if (grade === '') {
             enrollment.removeEvaluation(goal);
@@ -528,7 +529,7 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
     triggerSave();
     res.status(200).json(parsed_lines);
   }
-  
+
 });
 
 app.listen(PORT, () => {
