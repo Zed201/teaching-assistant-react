@@ -508,14 +508,17 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
     return;
   }
   // pegar os goals + cpf, de forma condizente com os dados e nao algo hardcoded
-  var goals_field = Array.from(
-    new Set(
-      enroll.flatMap(enrollment =>
-        enrollment.getEvaluations().map(eval_ => eval_.getGoal())
-      )
-    )
-  );
-  goals_field.push("cpf");
+  // var goals_field = Array.from(
+  //   new Set(
+  //     enroll.flatMap(enrollment =>
+  //       enrollment.getEvaluations().map(eval_ => eval_.getGoal())
+  //     )
+  //   )
+  // );
+  // pegar de forma direta dos EVALUATION_GOALS, pois nao esta dinamico nesse ponto
+  // goals_field.push("cpf");
+  var goals_field = ["cpf", ...Array.from(EVALUATION_GOALS)];
+  
   // 2 tipos de resposta, quando manda arquivo e quando nao manda, quando manda:
   // recebe um .csv ou .xlsl
   // res.send({ status: 200, session_string: fileP, file_columns: file_cols, mapping_colums: field_cols });
@@ -566,10 +569,12 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
         for (const [goal, grade] of Object.entries(l).filter(([k]) => k !== 'cpf')) {
           const gradeStr = String(grade);
           if (gradeStr === '') {
-            enrollment.removeEvaluation(goal);
+            // nao faz nada
+            // enrollment.removeEvaluation(goal);
           } else if (!['MANA', 'MPA', 'MA'].includes(gradeStr)) {
             return res.status(400).json({ error: `Invalid grade, for ${goal} on CPF=${cleanedcpf}. Must be MANA, MPA, or MA, is '${gradeStr}'` });
-          } else {
+          } else if (enrollment.getEvaluationForGoal(goal) === undefined) {
+            // atualiza apenas se ele for vzaio no sistema
             enrollment.addOrUpdateEvaluation(goal, gradeStr as 'MANA' | 'MPA' | 'MA');
           }
         }

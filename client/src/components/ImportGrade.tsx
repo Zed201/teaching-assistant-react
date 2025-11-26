@@ -53,7 +53,7 @@ export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = (
   // Vai mandar para o back para ele processar e retorna as colunas e os nomes das metas para fazer o mapeamento
   const processFileInBack = async () => {
     if (!selectedFile) {
-      console.log("Erro na seleção de arquivo");
+      alert("Erro na seleção de arquivo");
       return;
     }
       const formData = new FormData();
@@ -92,6 +92,7 @@ export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = (
               file_columns: file_columns,
               mapping_colums: mapping_colums
             });
+            alert('Erro: Dados incompletos retornados pelo servidor');
           }
         } else {
           // Status code de erro
@@ -101,12 +102,15 @@ export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = (
           try {
             const errorBody = await response.json();
             console.error('Detalhes do erro:', errorBody);
+            alert(`Erro ao processar arquivo: ${errorBody.error || response.statusText}`);
           } catch {
             console.error('Não foi possível ler o corpo da resposta de erro');
+            alert(`Erro ao processar arquivo: ${response.statusText}`);
           }
         }
       } catch (error: any) {
         console.error('Erro na requisição:', error);
+        alert(`Erro na requisição: ${error.message}`);
       }
 
   };
@@ -129,7 +133,6 @@ export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = (
         session_string: session,
         mapping: cleanedMapping,
       };
-      console.log(f);
       const response = await fetch(API_BASE_URL + '/api/classes/gradeImport/' + classID, {
         method: "POST",
         headers: {
@@ -137,14 +140,21 @@ export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = (
           },
         body: JSON.stringify(f)
       });
-
-      if(!response.ok){
-        throw new Error(`Erro ao enviar o mapping`);
+      console.log('Response status:', response.status);
+      console.log('Response status text:', response.statusText);
+      if(!response.ok){ 
+        const errorData = await response.json();
+        const errorMessage = `Erro ao enviar o mapping: ${errorData.error || response.statusText}`;
+        alert(errorMessage);
+        throw new Error(errorMessage);
       }
       // call loadclasses in evaluation component
       await toReset();
-    } catch(error) {
+    } catch(error: any) {
       console.error({ error: error });
+      if (error.message && !error.message.includes('Erro ao enviar o mapping')) {
+        alert(`Erro: ${error.message}`);
+      }
     }
 
   };
@@ -196,7 +206,7 @@ export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = (
       {/* Passo 2: Mapping */}
       {step === 2 && (
         <div>
-          <h2>Mapeamento de colunas</h2>
+          <h1>Mapeamento de colunas</h1>
           <div
             style={{
               display: "grid",
@@ -205,6 +215,8 @@ export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = (
               columnGap: "8px",
             }}
           >
+            <h2 style={{ margin: 0, gridColumn: "1" }}>Colunas do Arquivo</h2>
+            <h2 style={{ margin: 0, gridColumn: "2" }}>Campos Esperados pela turma</h2>
             {columns.map(col => (
                 // col -> colunas do aquivo
                 // opt -> colunas que queremos colocar
