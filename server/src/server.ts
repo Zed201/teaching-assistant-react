@@ -564,12 +564,13 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
         // atualiza o grade exatamente do jeito que esta na planilha, onde esta vazio
         // TODO: Saber se quando esta vazio ele nao deve atualizar
         for (const [goal, grade] of Object.entries(l).filter(([k]) => k !== 'cpf')) {
-          if (grade === '') {
+          const gradeStr = String(grade);
+          if (gradeStr === '') {
             enrollment.removeEvaluation(goal);
-          } else if (!['MANA', 'MPA', 'MA'].includes(grade)) {
-            return res.status(400).json({ error: `Invalid grade, for ${goal} on CPF=${cleanedcpf}. Must be MANA, MPA, or MA, is '${grade}'` });
+          } else if (!['MANA', 'MPA', 'MA'].includes(gradeStr)) {
+            return res.status(400).json({ error: `Invalid grade, for ${goal} on CPF=${cleanedcpf}. Must be MANA, MPA, or MA, is '${gradeStr}'` });
           } else {
-            enrollment.addOrUpdateEvaluation(goal, grade);
+            enrollment.addOrUpdateEvaluation(goal, gradeStr as 'MANA' | 'MPA' | 'MA');
           }
         }
       }

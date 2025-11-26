@@ -60,7 +60,7 @@ export class XLSXReader extends SpreadsheetReader {
   async process(): Promise<any[]> {
     throw new Error("Method not implemented yet");
   }
-  getColumns(): Promisse<string[]> {
+  getColumns(): Promise<string[]> {
     throw new Error("Not implemented");
   }
 }
