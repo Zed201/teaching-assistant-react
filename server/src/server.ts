@@ -51,7 +51,10 @@ const saveDataToFile = (): void => {
         especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
         enrollments: classObj.getEnrollments().map(enrollment => ({
           studentCPF: enrollment.getStudent().getCPF(),
-          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
+          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+          mediaPreFinal: enrollment.getMediaPreFinal(),
+          mediaPosFinal: enrollment.getMediaPosFinal(),
+          reprovadoPorFalta: enrollment.getReprovadoPorFalta()
         }))
       }))
     };
@@ -482,6 +485,13 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
         return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
       }
       enrollment.addOrUpdateEvaluation(goal, grade);
+    }
+    // Recalculate media values after evaluation change so they are sent to the client
+    try {
+      enrollment.calculateMediaPreFinal();
+      // enrollment.calculateMediaPosFinal();
+    } catch (err) {
+      // ignore errors during recalculation
     }
 
     triggerSave(); // Save to file after evaluation update

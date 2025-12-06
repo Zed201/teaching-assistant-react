@@ -71,7 +71,10 @@
               "goal": "Refactoring",
               "grade": "MA"
             }
-          ]
+          ],
+          "mediaPreFinal": null,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         },
         {
           "studentCPF": "55555555555",
@@ -100,7 +103,10 @@
               "goal": "Tests",
               "grade": "MPA"
             }
-          ]
+          ],
+          "mediaPreFinal": null,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         },
         {
           "studentCPF": "22222222222",
@@ -117,7 +123,10 @@
               "goal": "Project Management",
               "grade": "MPA"
             }
-          ]
+          ],
+          "mediaPreFinal": null,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         }
       ]
     },
@@ -142,30 +151,21 @@
           "studentCPF": "22222222222",
           "evaluations": [
             {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
               "goal": "Refactoring",
               "grade": "MA"
             },
             {
               "goal": "Tests",
               "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
             }
-          ]
+          ],
+          "mediaPreFinal": 3.3333333333333335,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         },
         {
           "studentCPF": "33333333333",
@@ -176,25 +176,28 @@
             },
             {
               "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Design",
               "grade": "MA"
             },
             {
-              "goal": "Tests",
+              "goal": "Project Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Design",
               "grade": "MANA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
             },
             {
               "goal": "Refactoring",
               "grade": "MA"
             }
-          ]
+          ],
+          "mediaPreFinal": 5.666666666666667,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         }
       ]
     }
