@@ -19,11 +19,6 @@
       "name": "Joana Refatoração",
       "cpf": "55555555555",
       "email": "jr@gmail.com"
-    },
-    {
-      "name": "Test Student",
-      "cpf": "12345678901",
-      "email": "test.student@email.cm"
     }
   ],
   "classes": [
@@ -60,18 +55,33 @@
               "grade": "MA"
             },
             {
-              "goal": "Design",
+              "goal": "Roteiro 1",
               "grade": "MA"
             },
             {
-              "goal": "Tests",
+              "goal": "Roteiro 2",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Roteiro 3",
               "grade": "MA"
             },
             {
-              "goal": "Refactoring",
+              "goal": "Roteiro 4",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Roteiro 5",
               "grade": "MA"
+            },
+            {
+              "goal": "Roteiro 6",
+              "grade": "MPA"
             }
-          ]
+          ],
+          "mediaPreFinal": null,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         },
         {
           "studentCPF": "55555555555",
@@ -89,47 +99,77 @@
               "grade": "MPA"
             },
             {
-              "goal": "Design",
-              "grade": "MPA"
+              "goal": "Roteiro 1",
+              "grade": "MANA"
             },
             {
-              "goal": "Refactoring",
-              "grade": "MPA"
+              "goal": "Roteiro 2",
+              "grade": "MANA"
             },
             {
-              "goal": "Tests",
-              "grade": "MPA"
+              "goal": "Roteiro 3",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Roteiro 4",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Roteiro 5",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Roteiro 6",
+              "grade": "MANA"
             }
-          ]
+          ],
+          "mediaPreFinal": null,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         },
         {
           "studentCPF": "22222222222",
           "evaluations": [
             {
-              "goal": "Configuration Management",
-              "grade": "MANA"
-            },
-            {
               "goal": "Requirements",
               "grade": "MPA"
             },
             {
+              "goal": "Roteiro 1",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Roteiro 2",
+              "grade": "MA"
+            },
+            {
+              "goal": "Roteiro 3",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Roteiro 4",
+              "grade": "MA"
+            },
+            {
+              "goal": "Roteiro 5",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Roteiro 6",
+              "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MA"
+            },
+            {
               "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Tests",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Refactoring",
-              "grade": "MPA"
+              "grade": "MA"
             }
-          ]
+          ],
+          "mediaPreFinal": null,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         }
       ]
     },
@@ -154,30 +194,37 @@
           "studentCPF": "22222222222",
           "evaluations": [
             {
-              "goal": "Requirements",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Configuration Management",
-              "grade": "MA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Design",
-              "grade": "MA"
-            },
-            {
               "goal": "Refactoring",
-              "grade": "MA"
+              "grade": "MPA"
             },
             {
               "goal": "Tests",
               "grade": "MA"
+            },
+            {
+              "goal": "Configuration Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Final",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Design",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Project Management",
+              "grade": "MANA"
+            },
+            {
+              "goal": "Requirements",
+              "grade": "MA"
             }
-          ]
+          ],
+          "mediaPreFinal": 2.3333333333333335,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         },
         {
           "studentCPF": "33333333333",
@@ -188,25 +235,32 @@
             },
             {
               "goal": "Configuration Management",
-              "grade": "MPA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Design",
               "grade": "MA"
             },
             {
-              "goal": "Tests",
+              "goal": "Project Management",
+              "grade": "MPA"
+            },
+            {
+              "goal": "Design",
               "grade": "MANA"
+            },
+            {
+              "goal": "Tests",
+              "grade": "MA"
             },
             {
               "goal": "Refactoring",
               "grade": "MA"
+            },
+            {
+              "goal": "Final",
+              "grade": "MA"
             }
-          ]
+          ],
+          "mediaPreFinal": 5.666666666666667,
+          "mediaPosFinal": null,
+          "reprovadoPorFalta": false
         }
       ]
     }
