@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { StudentSet } from './models/StudentSet';
 import { Student } from './models/Student';
-import { Evaluation, EVALUATION_GOALS } from './models/Evaluation';
+import { Evaluation, EVALUATION_GOALS, GENERAL_EVALUATION_GOALS, ROTEIRO_EVALUATION_GOALS } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import { Report } from './models/Report';
@@ -519,7 +519,20 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
   const enrollments = classObj.getEnrollments();
   if (!enrollments) return res.status(404).json({ error: 'Enrollments not found' });
 
-  const goals_field = ['cpf', ...Array.from(EVALUATION_GOALS)];
+  // Determine which goals to use based on evaluationType query parameter
+  const evaluationType = req.query.evaluationType as string;
+  let selectedGoals: string[];
+  
+  if (evaluationType === 'general') {
+    selectedGoals = GENERAL_EVALUATION_GOALS;
+  } else if (evaluationType === 'roteiros') {
+    selectedGoals = ROTEIRO_EVALUATION_GOALS;
+  } else {
+    // Default to all goals if not specified
+    selectedGoals = EVALUATION_GOALS;
+  }
+  
+  const goals_field = ['cpf', ...Array.from(selectedGoals)];
 
   // STEP 1: if a file was uploaded, return its columns so frontend can map them to goals
   // - `session_string` is the temp path (multer destination) used as an identifier

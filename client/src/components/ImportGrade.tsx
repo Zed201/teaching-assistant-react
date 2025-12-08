@@ -4,8 +4,9 @@ import CustomFileInput from "./shared/InputFile/InputFile";
 const API_BASE_URL = 'http://localhost:3005';
 
 interface ImportGradeComponentProps {
-        classID: string;
-        toReset: () => Promise<void>;
+	classID: string;
+	toReset: () => Promise<void>;
+	evaluationType?: 'general' | 'roteiros';
 }
 
 /**
@@ -16,7 +17,7 @@ interface ImportGradeComponentProps {
  * 
  * The component maintains session state between steps using a session_string returned by the backend.
  */
-export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = ({ classID = "", toReset }) => {
+export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = ({ classID = "", toReset, evaluationType = 'general' }) => {
         // ========== Component State ==========
 
         // Current step in the flow (1 = upload, 2 = mapping)
@@ -82,13 +83,11 @@ export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = ({ clas
                 formData.append('fileName', selectedFile.name);
                 formData.append('fileType', selectedFile.type);
 
-                try {
-                        const response = await fetch(`${API_BASE_URL}/api/classes/gradeImport/${classID}`, {
-                                method: 'POST',
-                                body: formData,
-                        });
-
-                        if (response.ok) {
+		try {
+			const response = await fetch(`${API_BASE_URL}/api/classes/gradeImport/${classID}?evaluationType=${evaluationType}`, {
+				method: 'POST',
+				body: formData,
+			});                        if (response.ok) {
                                 const respJson = await response.json();
                                 const sessionString: string = respJson.session_string;
                                 const fileColumns: string[] = respJson.file_columns;
@@ -146,13 +145,11 @@ export const ImportGradeComponent: React.FC<ImportGradeComponentProps> = ({ clas
                                 mapping: cleanedMapping,
                         };
 
-                        const response = await fetch(`${API_BASE_URL}/api/classes/gradeImport/${classID}`, {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify(payload)
-                        });
-
-                        console.log('Response status:', response.status);
+			const response = await fetch(`${API_BASE_URL}/api/classes/gradeImport/${classID}?evaluationType=${evaluationType}`, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload)
+			});                        console.log('Response status:', response.status);
 
                         if (!response.ok) {
                                 const errorData = await response.json();

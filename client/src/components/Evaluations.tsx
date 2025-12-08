@@ -205,7 +205,11 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
             <h4 style={{ marginBottom: '10px' }}>
               {viewMode === 'general' ? 'Importar Notas Gerais' : 'Importar Notas de Roteiros'}
             </h4>
-            <ImportGradeComponent classID={selectedClassId} toReset={loadClasses} />
+            <ImportGradeComponent 
+              classID={selectedClassId} 
+              toReset={loadClasses} 
+              evaluationType={viewMode}
+            />
           </div>
           
           <div className="evaluation-matrix">

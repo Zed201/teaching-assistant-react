@@ -203,6 +203,16 @@ Given('fiz upload de um arquivo CSV com dados válidos', async function () {
 });
 
 Given('estou na etapa de mapeamento de colunas', async function () {
+  // Aguardar o componente avançar para a etapa de mapeamento
+  // Isso pode demorar devido ao upload do arquivo e processamento no backend
+  await new Promise(resolve => setTimeout(resolve, 3000));
+  
+  // Aguardar explicitamente pelo heading de mapeamento aparecer
+  await page.waitForFunction(() => {
+    const headings = Array.from(document.querySelectorAll('h2'));
+    return headings.some(h => h.textContent?.includes('Colunas do Arquivo'));
+  }, { timeout: 10000 });
+  
   // Verificar que estamos na etapa de mapeamento
   const mappingHeading = await page.$('h2');
   if (mappingHeading) {

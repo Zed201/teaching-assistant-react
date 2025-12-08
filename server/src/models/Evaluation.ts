@@ -35,13 +35,16 @@ export class Evaluation {
 }
 
 // Predefined evaluation goals
-export const EVALUATION_GOALS = [
+export const GENERAL_EVALUATION_GOALS = [
   'Requirements',
   'Configuration Management', 
   'Project Management',
   'Design',
   'Tests',
-  'Refactoring',
+  'Refactoring'
+] as const;
+
+export const ROTEIRO_EVALUATION_GOALS = [
   'Roteiro 1',
   'Roteiro 2',
   'Roteiro 3',
@@ -49,3 +52,6 @@ export const EVALUATION_GOALS = [
   'Roteiro 5',
   'Roteiro 6'
 ] as const;
+
+// All evaluation goals combined
+export const EVALUATION_GOALS = [...GENERAL_EVALUATION_GOALS, ...ROTEIRO_EVALUATION_GOALS] as const;
