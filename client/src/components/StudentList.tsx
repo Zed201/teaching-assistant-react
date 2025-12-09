@@ -36,10 +36,21 @@ const StudentList: React.FC<StudentListProps> = ({
   };
 
   const getBorderColor = (cpf: string): string => {
-    if (!studentsStatus) return 'transparent';
+    if (!studentsStatus || studentsStatus.length === 0) {
+      return 'transparent';
+    }
 
-    const status = studentsStatus.find(s => s.student.cpf === cpf);
-    if (!status) return 'transparent';
+    // Normalizar CPF removendo pontos, traços e espaços
+    const normalizedCpf = cpf.replace(/[.\-\s]/g, '');
+    
+    const status = studentsStatus.find(s => {
+      const statusCpf = String(s.student?.cpf || '').replace(/[.\-\s]/g, '');
+      return statusCpf === normalizedCpf;
+    });
+    
+    if (!status) {
+      return 'transparent';
+    }
 
     if (status.statusColor === 'green') return '#22c55e';
     if (status.statusColor === 'yellow') return '#eab308';
