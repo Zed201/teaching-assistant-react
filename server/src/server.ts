@@ -41,33 +41,34 @@ const ensureDataDirectory = (): void => {
 };
 
 const saveDataToFile = (): void => {
-        try {
-                const data = {
-                        students: studentSet.getAllStudents().map(student => ({
-                                name: student.name,
-                                cpf: student.getCPF(),
-                                email: student.email
-                        })),
-                        classes: classes.getAllClasses().map(classObj => ({
-                                topic: classObj.getTopic(),
-                                semester: classObj.getSemester(),
-                                year: classObj.getYear(),
-                                especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
-                                enrollments: classObj.getEnrollments().map(enrollment => ({
-                                        studentCPF: enrollment.getStudent().getCPF(),
-                                        evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
-                                        mediaPreFinal: enrollment.getMediaPreFinal(),
-                                        mediaPosFinal: enrollment.getMediaPosFinal(),
-                                        reprovadoPorFalta: enrollment.getReprovadoPorFalta()
-                                }))
-                        }))
-                };
-
-                ensureDataDirectory();
-                fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
-        } catch (error) {
-                console.error('Error saving students to file:', error);
-        }
+  try {
+    const data = {
+      students: studentSet.getAllStudents().map(student => ({
+        name: student.name,
+        cpf: student.getCPF(),
+        email: student.email
+      })),
+      classes: classes.getAllClasses().map(classObj => ({
+        topic: classObj.getTopic(),
+        semester: classObj.getSemester(),
+        year: classObj.getYear(),
+        especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
+        enrollments: classObj.getEnrollments().map(enrollment => ({
+          studentCPF: enrollment.getStudent().getCPF(),
+          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+          notaFinal: (typeof (enrollment as any).getNotaFinal === 'function') ? (enrollment as any).getNotaFinal() : null,
+          mediaPreFinal: enrollment.getMediaPreFinal(),
+          mediaPosFinal: enrollment.getMediaPosFinal(),
+          reprovadoPorFalta: enrollment.getReprovadoPorFalta()
+        }))
+      }))
+    };
+    
+    ensureDataDirectory();
+    fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
+  } catch (error) {
+    console.error('Error saving students to file:', error);
+  }
 };
 
 // Load data from file
@@ -653,7 +654,9 @@ app.get('/api/classes/:classId/students-status', (req: Request, res: Response) =
       };
     });
 
-    const mediasValidas = studentData.map(d => d.mediaAluno);
+    const mediasValidas = studentData
+      .map(d => d.mediaAluno)
+      .filter((m): m is number => m !== null);
     const mediaTurma =
       mediasValidas.length > 0
         ? mediasValidas.reduce((acc, curr) => acc + curr, 0) / mediasValidas.length
@@ -663,14 +666,19 @@ app.get('/api/classes/:classId/students-status', (req: Request, res: Response) =
       const student = enrollment.getStudent();
       const cpf = cleanCPF(student.getCPF());
 
-      const reprovadoAnteriormente = pastClasses.some(pastClass => 
-        pastClass.findEnrollmentByStudentCPF(cpf) !== undefined
-      );
+      const reprovadoAnteriormente = pastClasses.some(pastClass => {
+        const pastEnrollment = pastClass.findEnrollmentByStudentCPF(cpf);
+        if (!pastEnrollment) return false;
+        
+        // Verifica se foi reprovado (média pré-final < 5.0)
+        const mediaPastClass = pastEnrollment.calculateMediaPreFinal();
+        return mediaPastClass !== null && mediaPastClass < 5.0;
+      });
 
       const temReprovacao = reprovadoAnteriormente;
 
       const color = getStudentStatusColor(
-        mediaAluno,
+        mediaAluno ?? 0,
         mediaTurma,
         temReprovacao
       );

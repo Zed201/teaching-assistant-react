@@ -15,6 +15,7 @@ const API_URL = 'http://localhost:3005/api';
 let browser: Browser;
 let page: Page;
 let currentClassId: string = '';
+let pastClassId: string = '';
 
 let createdClassIds: string[] = [];
 let createdStudentCPFs: string[] = [];
@@ -26,36 +27,48 @@ const COLORS = {
 };
 
 async function navigateToTab(targetPageName: string) {
+  // Garantir que estamos na página principal
   if (page.url() !== FRONTEND_URL && !page.url().includes('localhost:3004')) {
-    await page.goto(FRONTEND_URL, { waitUntil: 'networkidle0' });
+    await page.goto(FRONTEND_URL, { waitUntil: 'networkidle0', timeout: 30000 });
   }
 
   const tabMap: Record<string, string> = { "Avaliações": "Evaluations", "Students": "Students" };
   const targetText = tabMap[targetPageName] || targetPageName;
 
-  try {
-    const buttons = await page.$$('button, a');
-    for (const btn of buttons) {
-      const text = await page.evaluate(el => el.textContent, btn);
-      if (text?.includes(targetText)) {
-        await btn.click();
-        return;
-      }
+  // Esperar a página carregar completamente antes de procurar botões
+  await page.waitForSelector('.tab-navigation', { timeout: 10000 });
+  await page.waitForSelector('button, a', { timeout: 10000 });
+  
+  // Usar waitForSelector com xpath ou texto para encontrar o botão específico
+  const clickedButton = await page.evaluate((text) => {
+    const buttons = Array.from(document.querySelectorAll('button, a'));
+    const button = buttons.find(btn => btn.textContent?.includes(text));
+    if (button) {
+      (button as HTMLElement).click();
+      return true;
     }
+    return false;
+  }, targetText);
 
-    await page.goto(FRONTEND_URL, { waitUntil: 'networkidle0' });
-    const retryButtons = await page.$$('button, a');
-    for (const btn of retryButtons) {
-      const text = await page.evaluate(el => el.textContent, btn);
-      if (text?.includes(targetText)) {
-        await btn.click();
-        return;
-      }
-    }
-  } catch (error) {
-    throw new Error(`Falha ao navegar para aba ${targetText}: ${error}`);
+  if (!clickedButton) {
+    throw new Error(`Aba ${targetText} não encontrada.`);
   }
-  throw new Error(`Aba ${targetText} não encontrada.`);
+
+  // Aguardar o conteúdo da aba aparecer
+  if (targetText === 'Evaluations') {
+    await page.waitForFunction(
+      () => {
+        const headings = Array.from(document.querySelectorAll('h3'));
+        return headings.some(h => h.textContent?.includes('Evaluations'));
+      },
+      { timeout: 10000 }
+    );
+  } else if (targetText === 'Students') {
+    await page.waitForSelector('table', { timeout: 10000 });
+  }
+  
+  // Aguardar um pouco para garantir que a transição está completa
+  await new Promise(resolve => setTimeout(resolve, 500));
 }
 
 Before({ tags: '@student-status-color' }, async function () {
@@ -63,10 +76,11 @@ Before({ tags: '@student-status-color' }, async function () {
   createdClassIds = [];
   createdStudentCPFs = [];
   currentClassId = '';
+  pastClassId = '';
 
   browser = await launch({ 
     headless: false, 
-    slowMo: 50,
+    slowMo: 10,
     args: ['--start-maximized', '--no-sandbox', '--disable-setuid-sandbox']
   });
   page = await browser.newPage();
@@ -152,6 +166,7 @@ Given('que houve uma turma passada {string}', async function (classString: strin
     });
 
     if (newClass && newClass.id) {
+        pastClassId = newClass.id;
         createdClassIds.push(newClass.id);
     }
 });
@@ -174,15 +189,13 @@ Given('o aluno {string} \\(CPF {string}) foi reprovado nessa turma passada', asy
     const newStudent = await apiRequest('POST', '/students', { name, cpf, email: 'reprovado@teste.com' });
     if (newStudent && newStudent.name) createdStudentCPFs.push(cpf);
 
-    // Busca turmas para achar a passada
-    const classes = await apiRequest('GET', '/classes') as any[];
-    const pastClass = classes.find((c: any) => c.id !== currentClassId && c.year < 2026); // Ajuste conforme seu cenário de teste
-    
-    if (pastClass) {
-        await apiRequest('POST', `/classes/${pastClass.id}/enroll`, { studentCPF: cpf });
-        const goals = ['Requirements', 'Project Management']; 
+    // Usa a turma passada guardada na variável pastClassId
+    if (pastClassId) {
+        await apiRequest('POST', `/classes/${pastClassId}/enroll`, { studentCPF: cpf });
+        // Dar notas MANA em todas as avaliações para garantir reprovação (média < 5.0)
+        const goals = ['Requirements', 'Configuration Management', 'Project Management', 'Design', 'Tests', 'Refactoring']; 
         for (const goal of goals) {
-            await apiRequest('PUT', `/classes/${pastClass.id}/enrollments/${cpf}/evaluation`, { goal, grade: 'MANA' });
+            await apiRequest('PUT', `/classes/${pastClassId}/enrollments/${cpf}/evaluation`, { goal, grade: 'MANA' });
         }
     }
 });

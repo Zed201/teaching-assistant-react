@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import { StudentSet } from './models/StudentSet';
 import { Student } from './models/Student';
-import { Evaluation, EVALUATION_GOALS } from './models/Evaluation';
+import { Evaluation, EVALUATION_GOALS, GENERAL_EVALUATION_GOALS, ROTEIRO_EVALUATION_GOALS } from './models/Evaluation';
 import { Classes } from './models/Classes';
 import { Class } from './models/Class';
 import { Report } from './models/Report';
@@ -10,7 +10,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { CSVReader, XLSXReader } from './services/SpreeadsheetReader';
 import { EspecificacaoDoCalculoDaMedia, DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA } from './models/EspecificacaoDoCalculoDaMedia';
-
+import { getStudentStatusColor } from './models/StudentStatusColor';
+import { Grade } from './models/Evaluation';
 // usado para ler arquivos em POST
 const multer = require('multer');
 
@@ -56,19 +57,20 @@ const saveDataToFile = (): void => {
         enrollments: classObj.getEnrollments().map(enrollment => ({
           studentCPF: enrollment.getStudent().getCPF(),
           evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+          notaFinal: (typeof (enrollment as any).getNotaFinal === 'function') ? (enrollment as any).getNotaFinal() : null,
           mediaPreFinal: enrollment.getMediaPreFinal(),
           mediaPosFinal: enrollment.getMediaPosFinal(),
           reprovadoPorFalta: enrollment.getReprovadoPorFalta()
         }))
       }))
     };
-
+    
     ensureDataDirectory();
     fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
     console.error('Error saving students to file:', error);
   }
-||||||| 4536175
+||||||| a2a337c
   try {
     const data = {
       students: studentSet.getAllStudents().map(student => ({
@@ -83,11 +85,14 @@ const saveDataToFile = (): void => {
         especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
         enrollments: classObj.getEnrollments().map(enrollment => ({
           studentCPF: enrollment.getStudent().getCPF(),
-          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
+          evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+          mediaPreFinal: enrollment.getMediaPreFinal(),
+          mediaPosFinal: enrollment.getMediaPosFinal(),
+          reprovadoPorFalta: enrollment.getReprovadoPorFalta()
         }))
       }))
     };
-
+    
     ensureDataDirectory();
     fs.writeFileSync(dataFile, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
@@ -108,7 +113,10 @@ const saveDataToFile = (): void => {
                                 especificacaoDoCalculoDaMedia: classObj.getEspecificacaoDoCalculoDaMedia().toJSON(),
                                 enrollments: classObj.getEnrollments().map(enrollment => ({
                                         studentCPF: enrollment.getStudent().getCPF(),
-                                        evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON())
+                                        evaluations: enrollment.getEvaluations().map(evaluation => evaluation.toJSON()),
+                                        mediaPreFinal: enrollment.getMediaPreFinal(),
+                                        mediaPosFinal: enrollment.getMediaPosFinal(),
+                                        reprovadoPorFalta: enrollment.getReprovadoPorFalta()
                                 }))
                         }))
                 };
@@ -118,7 +126,7 @@ const saveDataToFile = (): void => {
         } catch (error) {
                 console.error('Error saving students to file:', error);
         }
->>>>>>> origin
+>>>>>>> origin/main
 };
 
 // Load data from file
@@ -138,6 +146,69 @@ export const loadDataFromFile = (): void => {
                                                 studentData.email
                                         );
 
+<<<<<<< HEAD
+            // Load enrollments for this class
+            if (classData.enrollments && Array.isArray(classData.enrollments)) {
+              classData.enrollments.forEach((enrollmentData: any) => {
+                const student = studentSet.findStudentByCPF(enrollmentData.studentCPF);
+                if (student) {
+                  const enrollment = classObj.addEnrollment(student);
+                  
+                  // Load evaluations for this enrollment
+                  if (enrollmentData.evaluations && Array.isArray(enrollmentData.evaluations)) {
+                    enrollmentData.evaluations.forEach((evalData: any) => {
+                      const evaluation = Evaluation.fromJSON(evalData);
+                      enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
+                    });
+                  }
+                    // Load notaFinal if provided (keeps evaluations in sync)
+                    if (typeof enrollmentData.notaFinal !== 'undefined') {
+                      // setNotaFinal will add/update/remove the 'Final' evaluation as appropriate
+                      if (typeof (enrollment as any).setNotaFinal === 'function') {
+                        (enrollment as any).setNotaFinal(enrollmentData.notaFinal);
+                      }
+                    }
+                    // Load medias and attendance status if provided in the data file
+                    if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
+                      enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
+                    }
+                    if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
+                      enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
+                    }
+                    if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
+                      enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
+                    }
+                } else {
+                  console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
+||||||| a2a337c
+            // Load enrollments for this class
+            if (classData.enrollments && Array.isArray(classData.enrollments)) {
+              classData.enrollments.forEach((enrollmentData: any) => {
+                const student = studentSet.findStudentByCPF(enrollmentData.studentCPF);
+                if (student) {
+                  const enrollment = classObj.addEnrollment(student);
+                  
+                  // Load evaluations for this enrollment
+                  if (enrollmentData.evaluations && Array.isArray(enrollmentData.evaluations)) {
+                    enrollmentData.evaluations.forEach((evalData: any) => {
+                      const evaluation = Evaluation.fromJSON(evalData);
+                      enrollment.addOrUpdateEvaluation(evaluation.getGoal(), evaluation.getGrade());
+                    });
+                  }
+                    
+                    // Load medias and attendance status if provided in the data file
+                    if (typeof enrollmentData.mediaPreFinal !== 'undefined') {
+                      enrollment.setMediaPreFinal(enrollmentData.mediaPreFinal);
+                    }
+                    if (typeof enrollmentData.mediaPosFinal !== 'undefined') {
+                      enrollment.setMediaPosFinal(enrollmentData.mediaPosFinal);
+                    }
+                    if (typeof enrollmentData.reprovadoPorFalta !== 'undefined') {
+                      enrollment.setReprovadoPorFalta(Boolean(enrollmentData.reprovadoPorFalta));
+                    }
+                } else {
+                  console.error(`Student with CPF ${enrollmentData.studentCPF} not found for enrollment`);
+=======
                                         try {
                                                 studentSet.addStudent(student);
                                         } catch (error) {
@@ -188,6 +259,7 @@ export const loadDataFromFile = (): void => {
                                         }
                                 });
                         }
+>>>>>>> origin/main
                 }
         } catch (error) {
                 console.error('Error loading data from file:', error);
@@ -514,7 +586,6 @@ app.get('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Request, res: Response) => {
         try {
                 const { classId, studentCPF } = req.params;
-                console.log(classId);
                 const { goal, grade } = req.body;
 
                 if (!goal) {
@@ -526,29 +597,68 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
                         return res.status(404).json({ error: 'Class not found' });
                 }
 
-              const cleanedCPF = cleanCPF(studentCPF);
-              const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
-              if (!enrollment) {
-                      return res.status(404).json({ error: 'Student not enrolled in this class' });
-              }
-
-              if (grade === '' || grade === null || grade === undefined) {
-                // Remove evaluation
-                enrollment.removeEvaluation(goal);
-              } else {
-                // Add or update evaluation
-                if (!['MANA', 'MPA', 'MA'].includes(grade)) {
-                  return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
+<<<<<<< HEAD
+    if (grade === '' || grade === null || grade === undefined) {
+      // Remove evaluation
+      enrollment.removeEvaluation(goal);
+    } else {
+      // Add or update evaluation
+      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
+        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
+      }
+      enrollment.addOrUpdateEvaluation(goal, grade);
+    }
+    // Recalculate media values after evaluation change so they are sent to the client
+    try {
+      enrollment.calculateMediaPreFinal();
+      // Recalculate post-final average as well (will use Final evaluation if present)
+      enrollment.calculateMediaPosFinal();
+    } catch (err) {
+      // ignore errors during recalculation
+    }
+||||||| a2a337c
+    if (grade === '' || grade === null || grade === undefined) {
+      // Remove evaluation
+      enrollment.removeEvaluation(goal);
+    } else {
+      // Add or update evaluation
+      if (!['MANA', 'MPA', 'MA'].includes(grade)) {
+        return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
+      }
+      enrollment.addOrUpdateEvaluation(goal, grade);
+    }
+    // Recalculate media values after evaluation change so they are sent to the client
+    try {
+      enrollment.calculateMediaPreFinal();
+      // enrollment.calculateMediaPosFinal();
+    } catch (err) {
+      // ignore errors during recalculation
+    }
+=======
+                const cleanedCPF = cleanCPF(studentCPF);
+                const enrollment = classObj.findEnrollmentByStudentCPF(cleanedCPF);
+                if (!enrollment) {
+                        return res.status(404).json({ error: 'Student not enrolled in this class' });
                 }
-                enrollment.addOrUpdateEvaluation(goal, grade);
-              }
-              // Recalculate media values after evaluation change so they are sent to the client
-              try {
-                enrollment.calculateMediaPreFinal();
-                // enrollment.calculateMediaPosFinal();
-              } catch (err) {
-                // ignore errors during recalculation
-              }
+>>>>>>> origin/main
+
+                if (grade === '' || grade === null || grade === undefined) {
+                        // Remove evaluation
+                        enrollment.removeEvaluation(goal);
+                } else {
+                        // Add or update evaluation
+                        if (!['MANA', 'MPA', 'MA'].includes(grade)) {
+                                return res.status(400).json({ error: 'Invalid grade. Must be MANA, MPA, or MA' });
+                        }
+                        enrollment.addOrUpdateEvaluation(goal, grade);
+                }
+                // Recalculate media values after evaluation change so they are sent to the client
+                try {
+                        enrollment.calculateMediaPreFinal();
+                        // enrollment.calculateMediaPosFinal();
+                } catch (err) {
+                        // ignore errors during recalculation
+                }
 
 
                 triggerSave(); // Save to file after evaluation update
@@ -564,29 +674,42 @@ app.put('/api/classes/:classId/enrollments/:studentCPF/evaluation', (req: Reques
 // 2) Front maps file columns to class goals and sends `session_string` + `mapping` -> backend parses
 //    the whole file and updates enrollments accordingly.
 app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (req: express.Request, res: express.Response) => {
-  const classId = req.params.classId;
-  const classObj = classes.findClassById(classId);
-  if (!classObj) return res.status(404).json({ error: 'Class not Found' });
+        const classId = req.params.classId;
+        const classObj = classes.findClassById(classId);
+        if (!classObj) return res.status(404).json({ error: 'Class not Found' });
 
-  const enrollments = classObj.getEnrollments();
-  if (!enrollments) return res.status(404).json({ error: 'Enrollments not found' });
+        const enrollments = classObj.getEnrollments();
+        if (!enrollments) return res.status(404).json({ error: 'Enrollments not found' });
 
-  const goals_field = ['cpf', ...Array.from(EVALUATION_GOALS)];
+        // Determine which goals to use based on evaluationType query parameter
+        const evaluationType = req.query.evaluationType as string;
+        let selectedGoals: string[];
 
-  // STEP 1: if a file was uploaded, return its columns so frontend can map them to goals
-  // - `session_string` is the temp path (multer destination) used as an identifier
-  const uploaded = (req as any).file;
-  // If file uploaded => return session + file columns for mapping
-  if (uploaded?.path) {
-        // validate file type for csv and excel
-    const allowedMimeTypes = [
-      'text/csv',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    ];
-    const allowedExtensions = ['.csv', '.xlsx', '.xls'];
-    const original = uploaded.originalname || '';
-    const ext = path.extname(original).toLowerCase();
+        if (evaluationType === 'general') {
+                selectedGoals = [...GENERAL_EVALUATION_GOALS];
+        } else if (evaluationType === 'roteiros') {
+                selectedGoals = [...ROTEIRO_EVALUATION_GOALS];
+        } else {
+                // Default to all goals if not specified
+                selectedGoals = [...EVALUATION_GOALS];
+        }
+
+        const goals_field = ['cpf', ...Array.from(selectedGoals)];
+
+        // STEP 1: if a file was uploaded, return its columns so frontend can map them to goals
+        // - `session_string` is the temp path (multer destination) used as an identifier
+        const uploaded = (req as any).file;
+        // If file uploaded => return session + file columns for mapping
+        if (uploaded?.path) {
+                // validate file type for csv and excel
+                const allowedMimeTypes = [
+                        'text/csv',
+                        'application/vnd.ms-excel',
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                ];
+                const allowedExtensions = ['.csv', '.xlsx', '.xls'];
+                const original = uploaded.originalname || '';
+                const ext = path.extname(original).toLowerCase();
 
                 // validate file type by mimetype OR extension
                 if (!allowedMimeTypes.includes(uploaded.mimetype) && !allowedExtensions.includes(ext)) {
@@ -601,7 +724,7 @@ app.post('/api/classes/gradeImport/:classId', upload_dir.single('file'), async (
                 uploadSessions.set(uploaded.path, { ext, original });
                 // return the temp path (session_string) + header columns and expected mapping fields
                 return res.status(200).json({ session_string: uploaded.path, file_columns, mapping_colums: goals_field });
-  }
+        }
 
         // STEP 2: mapping + processing
         // Expect JSON body: { session_string: string, mapping: { fileColumnName -> goalName } }
@@ -660,6 +783,78 @@ app.get('/api/classes/:classId/report', (req: Request, res: Response) => {
         }
 });
 
+// GET /api/classes/:classId/students-status - Get status color for each student in a class
+app.get('/api/classes/:classId/students-status', (req: Request, res: Response) => {
+  try {
+    const { classId } = req.params;
+    const classObj = classes.findClassById(classId);
+
+    if (!classObj) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    const currentTopic = classObj.getTopic();
+    const currentYear = classObj.getYear();
+    const currentSemester = classObj.getSemester();
+
+    const pastClasses = classes.getAllClasses().filter(c => {
+      if (c.getTopic() !== currentTopic) return false;
+
+      const isPrior = c.getYear() < currentYear || (c.getYear() === currentYear && c.getSemester() < currentSemester);
+      return isPrior;
+    });
+
+    const enrollments = classObj.getEnrollments();
+
+    const studentData = enrollments.map(enrollment => {
+      const mediaAluno = enrollment.calculateMediaPreFinal();
+
+      return {
+        enrollment,
+        mediaAluno
+      };
+    });
+
+    const mediasValidas = studentData.map(d => d.mediaAluno);
+    const mediaTurma =
+      mediasValidas.length > 0
+        ? mediasValidas.reduce((acc, curr) => acc + curr, 0) / mediasValidas.length
+        : 0;
+
+    const result = studentData.map(({ enrollment, mediaAluno }) => {
+      const student = enrollment.getStudent();
+      const cpf = cleanCPF(student.getCPF());
+
+      const reprovadoAnteriormente = pastClasses.some(pastClass => 
+        pastClass.findEnrollmentByStudentCPF(cpf) !== undefined
+      );
+
+      const temReprovacao = reprovadoAnteriormente;
+
+      const color = getStudentStatusColor(
+        mediaAluno,
+        mediaTurma,
+        temReprovacao
+      );
+
+      return {
+        student: {
+          ...student.toJSON(), 
+          cpf: student.getCPF() 
+        },
+        mediaAluno,
+        mediaTurma,
+        temReprovacaoAnterior: temReprovacao,
+        statusColor: color
+      };
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error('Erro Fatal ao calcular status:', error);
+    res.status(500).json({ error: 'Failed to calculate students status' });
+  }
+});
 
 // Export the app for testing
 export { app, studentSet, classes };
