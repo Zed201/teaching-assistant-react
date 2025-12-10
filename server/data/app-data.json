@@ -68,7 +68,7 @@
             },
             {
               "goal": "Requirements",
-              "grade": "MA"
+              "grade": "MANA"
             },
             {
               "goal": "Configuration Management",
@@ -80,18 +80,18 @@
             },
             {
               "goal": "Design",
-              "grade": "MA"
+              "grade": "MANA"
             },
             {
               "goal": "Tests",
-              "grade": "MA"
+              "grade": "MANA"
             },
             {
               "goal": "Refactoring",
-              "grade": "MA"
+              "grade": "MANA"
             }
           ],
-          "mediaPreFinal": 0,
+          "mediaPreFinal": 6.666666666666667,
           "mediaPosFinal": null,
           "reprovadoPorFalta": false
         },
@@ -148,22 +148,6 @@
             }
           ],
           "mediaPreFinal": 10,
-          "mediaPosFinal": null,
-          "reprovadoPorFalta": false
-        },
-        {
-          "studentCPF": "77777777777",
-          "evaluations": [
-            {
-              "goal": "Requirements",
-              "grade": "MANA"
-            },
-            {
-              "goal": "Project Management",
-              "grade": "MANA"
-            }
-          ],
-          "mediaPreFinal": 0,
           "mediaPosFinal": null,
           "reprovadoPorFalta": false
         }

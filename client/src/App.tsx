@@ -183,7 +183,7 @@ const App: React.FC = () => {
             </>
           )}
 
-          {activeTab === 'evaluations' && <Evaluations onError={handleError} onEvaluationChanged={loadClasses} />}
+          {activeTab === 'evaluations' && <Evaluations onError={handleError} />}
 
           {activeTab === 'classes' && (
             <Classes
