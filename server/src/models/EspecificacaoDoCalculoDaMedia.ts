@@ -1,5 +1,5 @@
 export type Grade = 'MANA' | 'MPA' | 'MA';
-export type Meta = string;
+type Meta = string;
 
 export class EspecificacaoDoCalculoDaMedia {
     private readonly pesosDosConceitos: Map<Grade, number>; // MA, MPA, MANA
@@ -30,17 +30,8 @@ export class EspecificacaoDoCalculoDaMedia {
 
         for (const [meta, conceito] of notasDasMetas.entries()) 
         {
-            // Verifica se o conceito existe
-            const pesoDoConceito = this.pesosDosConceitos.get(conceito);
-            if (pesoDoConceito === undefined) {
-                throw new Error(`Conceito '${conceito}' não encontrado nos pesos dos conceitos.`);
-            }
-
-            // Verifica se a meta existe
-            const pesoDaMeta = this.pesosDasMetas.get(meta);
-            if (pesoDaMeta === undefined) {
-                throw new Error(`Meta '${meta}' não encontrada nos pesos das metas.`);
-            }
+            const pesoDoConceito = this.pesosDosConceitos.get(conceito)!;
+            const pesoDaMeta = this.pesosDasMetas.get(meta)!;
             somaTotal += pesoDaMeta * pesoDoConceito;
         }
 
