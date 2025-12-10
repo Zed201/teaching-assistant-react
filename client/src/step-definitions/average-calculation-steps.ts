@@ -23,35 +23,49 @@ const context: TestContext = {};
 // ============================================
 
 Before(async function () {
-  // Criar turma de teste aleatória
+  // Criar ou usar turma de teste específica
   try {
     const timestamp = Date.now();
-    const randomId = Math.random().toString(36).substring(2, 8);
     
-    // Criar turma com nome único e aleatório
+    // Criar turma específica mencionada no feature file
     const classData = {
-      topic: `Test Class ${randomId}`,
+      topic: 'Engenharia de Software e Sistemas',
       year: 2025,
-      semester: Math.floor(Math.random() * 2) + 1 // 1 ou 2
+      semester: 2
     };
     
+    // Tentar criar a turma (pode já existir)
     const classResponse = await fetch(`${serverUrl}/api/classes`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(classData)
     });
     
-    if (!classResponse.ok) {
-      const error = await classResponse.text();
-      throw new Error(`Failed to create class: ${error}`);
+    if (classResponse.ok) {
+      const testClass = await classResponse.json();
+      context.testClassId = testClass.id;
+      // console.log('Created test class:', classData.topic, 'with ID:', context.testClassId);
+    } else {
+      // Se falhar (classe pode já existir), buscar todas as classes e encontrar a correspondente
+      const getAllResponse = await fetch(`${serverUrl}/api/classes`);
+      if (getAllResponse.ok) {
+        const allClasses = await getAllResponse.json();
+        const existingClass = allClasses.find((c: any) => 
+          c.topic === classData.topic && c.year === classData.year && c.semester === classData.semester
+        );
+        if (existingClass) {
+          context.testClassId = existingClass.id;
+          // console.log('Using existing class:', classData.topic, 'with ID:', context.testClassId);
+        } else {
+          throw new Error('Failed to create or find test class');
+        }
+      } else {
+        throw new Error('Failed to create class and failed to get all classes');
+      }
     }
     
-    const testClass = await classResponse.json();
-    context.testClassId = testClass.id;
-    // console.log('Created random test class:', classData.topic, 'with ID:', context.testClassId);
-    
     if (!context.testClassId) {
-      throw new Error('Class ID is undefined after creation');
+      throw new Error('Class ID is undefined after creation/lookup');
     }
     
     // Criar aluno de teste aleatório
@@ -101,7 +115,7 @@ Before(async function () {
   // Iniciar browser
   context.browser = await launch({
     headless: false,
-    slowMo: 10
+    slowMo: 50
   });
   context.page = await context.browser.newPage();
   if (context.page) {
@@ -125,17 +139,8 @@ After(async function () {
     }
   }
   
-  // Limpar a turma de teste aleatória criada
-  if (context.testClassId) {
-    try {
-      await fetch(`${serverUrl}/api/classes/${context.testClassId}`, {
-        method: 'DELETE'
-      });
-      // console.log('Cleaned up test class');
-    } catch (error) {
-      // console.error('Failed to cleanup class:', error);
-    }
-  }
+  // Não deletar a turma de teste pois ela pode ser reutilizada
+  // A turma "Engenharia de Software e Sistemas (2025/2)" deve permanecer para outros testes
   
   // Fechar browser
   if (context.browser) {
