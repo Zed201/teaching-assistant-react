@@ -17,9 +17,10 @@ const formatMedia = (value: number | null): string => {
 
 interface EvaluationsProps {
   onError: (errorMessage: string) => void;
+  onEvaluationChanged?: () => void;
 }
 
-const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
+const Evaluations: React.FC<EvaluationsProps> = ({ onError, onEvaluationChanged }) => {
   const [classes, setClasses] = useState<Class[]>([]);
   const [selectedClassId, setSelectedClassId] = useState<string>(() => {
     // Load previously selected class from localStorage
@@ -102,6 +103,8 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
       await EnrollmentService.updateEvaluation(selectedClass.id, studentCPF, goal, grade);
       // Reload classes to get updated enrollment data
       await loadClasses();
+      // Notify parent component to reload classes
+      onEvaluationChanged?.();
     } catch (error) {
       onError(`Failed to update evaluation: ${(error as Error).message}`);
     }
@@ -244,13 +247,6 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError }) => {
                     acc[evaluation.goal] = evaluation.grade;
                     return acc;
                   }, {} as {[goal: string]: string});
-
-                  // Final exam grade is stored as an evaluation with goal 'Final'
-                  const currentFinalGrade = studentEvaluations['Final'] || '';
-
-                  // Determine whether final select should be disabled:
-                  const mediaPreFinalIsNumber = typeof enrollment.mediaPreFinal === 'number' && !isNaN(enrollment.mediaPreFinal);
-                  const disableFinal = !mediaPreFinalIsNumber || (mediaPreFinalIsNumber && enrollment.mediaPreFinal! >= 7);
 
                   return (
                     <tr key={student.cpf} className="student-row">
