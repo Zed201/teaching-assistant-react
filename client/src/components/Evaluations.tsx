@@ -5,6 +5,16 @@ import EnrollmentService from '../services/EnrollmentService';
 
 import { ImportGradeComponent } from './ImportGrade';
 
+// Função para formatar média com uma casa decimal
+const formatMedia = (value: number | null): string => {
+  if (typeof value !== 'number' || isNaN(value)) {
+    return '-';
+  }
+  console.log('media: ', value);
+  // O servidor já arredonda para uma casa decimal, então apenas formatamos
+  return value.toFixed(1).replace('.', ',');
+};
+
 interface EvaluationsProps {
   onError: (errorMessage: string) => void;
   onEvaluationChanged?: () => void;
@@ -223,6 +233,9 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError, onEvaluationChanged 
                   {displayedGoals.map(goal => (
                     <th key={goal} className="goal-header">{goal}</th>
                   ))}
+                  <th className="average-header">Average</th>
+                  <th className="final-header">Final</th>
+                  <th className="final-average-header">Final Average</th>
                 </tr>
               </thead>
               <tbody>
@@ -256,6 +269,52 @@ const Evaluations: React.FC<EvaluationsProps> = ({ onError, onEvaluationChanged 
                           </td>
                         );
                       })}
+                      <td className="average-cell">
+                        {formatMedia(enrollment.mediaPreFinal)}
+                      </td>
+                      <td className="final-cell">
+                      <select
+                        value={disableFinal ? '' : currentFinalGrade}
+                        onChange={(e) => {
+                          if (disableFinal) return;
+                          handleEvaluationChange(student.cpf, 'Final', e.target.value);
+                        }}
+                        className={`evaluation-select ${
+                          (!disableFinal && currentFinalGrade)
+                            ? `grade-${currentFinalGrade.toLowerCase()}`
+                            : ''
+                        }`}
+                        disabled={disableFinal}
+                      >
+                        <option value="">-</option>
+                        <option value="MANA">MANA</option>
+                        <option value="MPA">MPA</option>
+                        <option value="MA">MA</option>
+                      </select>
+                    </td>
+                      <td className="final-average-cell">
+                        {(() => {
+                          // Se média pré-final >= 7, já está aprovado, mostra a média pré-final
+                          if (typeof enrollment.mediaPreFinal === 'number' && enrollment.mediaPreFinal >= 7) {
+                            return formatMedia(enrollment.mediaPreFinal);
+                          }
+                          
+                          // Se tem mediaPosFinal, usa ela
+                          if (typeof enrollment.mediaPosFinal === 'number') {
+                            return formatMedia(enrollment.mediaPosFinal);
+                          }
+                          
+                          // Se não tem mediaPosFinal mas tem nota final, calcula no cliente
+                          if (currentFinalGrade && typeof enrollment.mediaPreFinal === 'number') {
+                            const finalGradeValue = currentFinalGrade === 'MA' ? 10 : currentFinalGrade === 'MPA' ? 7 : 0;
+                            const calculatedFinal = (enrollment.mediaPreFinal + finalGradeValue) / 2;
+                            return formatMedia(calculatedFinal);
+                          }
+                          
+                          // Senão, mostra vazio
+                          return '-';
+                        })()}
+                      </td>
                     </tr>
                   );
                 })}

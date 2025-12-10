@@ -64,7 +64,7 @@ Before({ tags: '@import-grade or @import-grade-roteiro' }, async function () {
 
   browser = await launch({ 
     headless: false, // Set to true for CI/CD
-    slowMo: 50 // Slow down actions for visibility
+    slowMo: 10 // Slow down actions for visibility
   });
   page = await browser.newPage();
   await page.setViewport({ width: 1280, height: 720 });
@@ -128,9 +128,14 @@ Given('estou na página de Avaliações', async function () {
   }
   
   // Verificar que estamos na página de avaliações
-  await page.waitForSelector('h3', { timeout: 10000 });
-  const heading = await page.$eval('h3', el => el.textContent);
-  expect(heading).toContain('Evaluations');
+  // Esperar por um h3 que contenha "Evaluations" especificamente
+  await page.waitForFunction(
+    () => {
+      const headings = Array.from(document.querySelectorAll('h3'));
+      return headings.some(h => h.textContent?.includes('Evaluations'));
+    },
+    { timeout: 10000 }
+  );
   
   // console.log('✓ Navegado para página de Avaliações');
 });

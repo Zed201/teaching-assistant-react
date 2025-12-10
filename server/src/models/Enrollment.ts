@@ -2,16 +2,23 @@ import { Student } from './Student';
 import { Evaluation } from './Evaluation';
 import { DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA, Grade } from './EspecificacaoDoCalculoDaMedia';
 
+// Função para arredondar para uma casa decimal, arredondando para cima na segunda casa
+function roundToOneDecimal(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
 export class Enrollment {
   private student: Student;
   private evaluations: Evaluation[];
+  private notaFinal: string | null;
   private mediaPreFinal: number | null;
   private mediaPosFinal: number | null;
   private reprovadoPorFalta: Boolean;
 
-  constructor(student: Student, evaluations: Evaluation[] = [], mediaPreFinal: number | null = null, mediaPosFinal: number | null = null, reprovadoPorFalta: Boolean = false) {
+  constructor(student: Student, evaluations: Evaluation[] = [], mediaPreFinal: number | null = null, mediaPosFinal: number | null = null, reprovadoPorFalta: Boolean = false, notaFinal: string | null = null) {
     this.student = student;
     this.evaluations = evaluations;
+    this.notaFinal = notaFinal;
     this.mediaPreFinal = mediaPreFinal;
     this.mediaPosFinal = mediaPosFinal;
     this.reprovadoPorFalta = reprovadoPorFalta;
@@ -28,44 +35,67 @@ export class Enrollment {
   }
 
   // Calcula a média do estudante antes da prova final
-  calculateMediaPreFinal(): number {
+  calculateMediaPreFinal(): number | null {
     const specificacao_calculo_media = DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA;
-
     // Obter as metas e seus pesos
     const specificacaoJson = specificacao_calculo_media.toJSON();
     const metasDaSpec = Object.keys(specificacaoJson.pesosDasMetas || {});
 
-    const goalToMeta: Record<string, string> = {
-      'Configuration Management': 'Gerência de Configuração',
-      'Project Management': 'Gerência de Projeto',
-      'Design': 'Qualidade de Software',
-    };
-
     const notasDasMetas = new Map<string, Grade>();
 
     for (const meta of metasDaSpec) {
-      let evaluation = this.evaluations.find(e => e.getGoal() === meta);
-      
+      const evaluation = this.evaluations.find(e => e.getGoal() === meta);
+      // Se algum goal não tem avaliação (representado por '-' no frontend), retorna null
       if (!evaluation) {
-        const goalKey = Object.keys(goalToMeta).find(k => goalToMeta[k] === meta);
-
-        if (goalKey) {
-          evaluation = this.evaluations.find(e => e.getGoal() === goalKey);
-        }
+        this.setMediaPreFinal(null);
+        return null;
       }
-
-      // usa 'MANA' como default (peso 0)
-      const conceito = evaluation ? (evaluation.getGrade()) : 'MANA';
+      const conceito = evaluation.getGrade();
       notasDasMetas.set(meta, conceito);
     }
 
-    this.setMediaPreFinal(specificacao_calculo_media.calc(notasDasMetas));
-    return specificacao_calculo_media.calc(notasDasMetas);
+    const resultado = roundToOneDecimal(specificacao_calculo_media.calc(notasDasMetas));
+    this.setMediaPreFinal(resultado);
+    // aluno já está aprovado e não precisa fazer prova final
+    if (resultado >= 7) {
+      this.setNotaFinal(null);
+      this.setMediaPosFinal(null);
+    }
+    return resultado;
   }
 
   // Calcula a média do estudante depois da prova final
-  calculateMediaPosFinal(): number {
-    throw new Error('calculateMedia() not implemented yet');
+  calculateMediaPosFinal(): number | null {
+    let pre = (typeof this.mediaPreFinal === 'number' && !isNaN(this.mediaPreFinal))
+      ? this.mediaPreFinal
+      : this.calculateMediaPreFinal();
+
+    if (pre === null || isNaN(pre)) {
+      this.setMediaPosFinal(null);
+      return null;
+    }
+
+    // Retorna a média pré-final se aluno já foi aprovado
+    if (pre >= 7) {
+      this.setMediaPosFinal(null);
+      return pre;
+    }
+
+    // Se não há notaFinal selecionada, considera ela como zero
+    const notaFinalConcept = this.notaFinal;
+    if (!notaFinalConcept) {
+      this.setMediaPosFinal(pre / 2);
+      return pre / 2;
+    }
+
+    const specJSON = DEFAULT_ESPECIFICACAO_DO_CALCULO_DA_MEDIA.toJSON();
+    const pesosDosConceitos: { [k: string]: number } = specJSON.pesosDosConceitos || {};
+    const valorFinal = Number(pesosDosConceitos[notaFinalConcept] ?? 0);
+
+    // calcula média final (média simples entre a média e a notaFinal)
+    const pos = roundToOneDecimal((pre + valorFinal) / 2);
+    this.setMediaPosFinal(pos);
+    return pos;
   }
 
   // Get media do estudante antes da prova final
@@ -74,17 +104,21 @@ export class Enrollment {
   }
 
   // Set media do estudante antes da prova final
-  setMediaPreFinal(mediaPreFinal: number){
+  setMediaPreFinal(mediaPreFinal: number | null){
     this.mediaPreFinal = mediaPreFinal;
   }
 
   // Get média do estudante depois da final
   getMediaPosFinal(): number | null {
+    if (this.mediaPreFinal && this.mediaPreFinal >= 7) {
+      return this.mediaPreFinal;
+    }
+    
     return this.mediaPosFinal;
   }
 
   // Set média do estudante depois da final
-  setMediaPosFinal(mediaPosFinal: number){
+  setMediaPosFinal(mediaPosFinal: number | null){
     this.mediaPosFinal = mediaPosFinal;
   }
 
@@ -106,6 +140,10 @@ export class Enrollment {
     } else {
       this.evaluations.push(new Evaluation(goal, grade));
     }
+    // If this is the Final evaluation, keep notaFinal in sync
+    if (goal === 'Final') {
+      this.notaFinal = grade;
+    }
   }
 
   // Remove an evaluation
@@ -113,6 +151,9 @@ export class Enrollment {
     const existingIndex = this.evaluations.findIndex(evaluation => evaluation.getGoal() === goal);
     if (existingIndex >= 0) {
       this.evaluations.splice(existingIndex, 1);
+      if (goal === 'Final') {
+        this.notaFinal = null;
+      }
       return true;
     }
     return false;
@@ -128,6 +169,7 @@ export class Enrollment {
     return {
       student: this.student.toJSON(),
       evaluations: this.evaluations.map(evaluation => evaluation.toJSON()),
+      notaFinal: this.notaFinal,
       mediaPreFinal: this.mediaPreFinal,
       mediaPosFinal: this.mediaPosFinal,
       reprovadoPorFalta: this.reprovadoPorFalta
@@ -141,6 +183,7 @@ export class Enrollment {
     mediaPreFinal?: number;
     mediaPosFinal?: number;
     reprovadoPorFalta?: boolean;
+    notaFinal?: string | null;
   }, student: Student): Enrollment {
     const evaluations = data.evaluations
       ? data.evaluations.map((evalData: any) => Evaluation.fromJSON(evalData))
@@ -149,7 +192,28 @@ export class Enrollment {
     const mediaPreFinal = data.mediaPreFinal ?? 0;
     const mediaPosFinal = data.mediaPosFinal ?? 0;
     const reprovadoPorFalta = data.reprovadoPorFalta ?? false;
-    
-    return new Enrollment(student, evaluations, mediaPreFinal, mediaPosFinal, reprovadoPorFalta);
+    const notaFinal = typeof data.notaFinal !== 'undefined' ? data.notaFinal : null;
+    return new Enrollment(student, evaluations, mediaPreFinal, mediaPosFinal, reprovadoPorFalta, notaFinal);
+  }
+
+  // Get notaFinal (grade selected for Final)
+  getNotaFinal(): string | null {
+    return this.notaFinal;
+  }
+
+  // Set notaFinal
+  setNotaFinal(nota: string | null) {
+    this.notaFinal = nota;
+    // keep evaluations in sync: update or remove 'Final' evaluation accordingly
+    if (nota === null || nota === '') {
+      this.removeEvaluation('Final');
+    } else {
+      const existing = this.getEvaluationForGoal('Final');
+      if (existing) {
+        existing.setGrade(nota as any);
+      } else {
+        this.evaluations.push(new Evaluation('Final', nota as any));
+      }
+    }
   }
 }
